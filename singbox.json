@@ -1,0 +1,206 @@
+{
+    "log": {
+        "disabled": false,
+        "level": "info",
+        "timestamp": true
+    },
+    "inbounds": [
+        {
+            "type": "vless",
+            "sniff": true,
+            "sniff_override_destination": true,
+            "tag": "vless-sb",
+            "listen": "::",
+            "listen_port": 13579,
+            "users": [
+                {
+                    "uuid": "2dd9f8ed-b601-4c50-8148-da0c62670b66",
+                    "flow": "xtls-rprx-vision"
+                }
+            ],
+            "tls": {
+                "enabled": true,
+                "server_name": "www.yahoo.com",
+                "reality": {
+                    "enabled": true,
+                    "handshake": {
+                        "server": "www.yahoo.com",
+                        "server_port": 443
+                    },
+                    "private_key": "GAKzUaDFSymSszUkQQZSy9zVlnvv0liVbfGieQrZhmA",
+                    "short_id": [
+                        "c3b792f5"
+                    ]
+                }
+            }
+        },
+        {
+            "type": "vmess",
+            "sniff": true,
+            "sniff_override_destination": true,
+            "tag": "vmess-sb",
+            "listen": "::",
+            "listen_port": 8880,
+            "users": [
+                {
+                    "uuid": "2dd9f8ed-b601-4c50-8148-da0c62670b66",
+                    "alterId": 0
+                }
+            ],
+            "transport": {
+                "type": "ws",
+                "path": "2dd9f8ed-b601-4c50-8148-da0c62670b66-vm",
+                "max_early_data": 2048,
+                "early_data_header_name": "Sec-WebSocket-Protocol"
+            },
+            "tls": {
+                "enabled": false,
+                "server_name": "www.bing.com",
+                "certificate_path": "/etc/s-box/cert.pem",
+                "key_path": "/etc/s-box/private.key"
+            }
+        },
+        {
+            "type": "hysteria2",
+            "sniff": true,
+            "sniff_override_destination": true,
+            "tag": "hy2-sb",
+            "listen": "::",
+            "listen_port": 55555,
+            "users": [
+                {
+                    "password": "2dd9f8ed-b601-4c50-8148-da0c62670b66"
+                }
+            ],
+            "ignore_client_bandwidth": false,
+            "tls": {
+                "enabled": true,
+                "alpn": [
+                    "h3"
+                ],
+                "certificate_path": "/etc/s-box/cert.pem",
+                "key_path": "/etc/s-box/private.key"
+            }
+        },
+        {
+            "type": "tuic",
+            "sniff": true,
+            "sniff_override_destination": true,
+            "tag": "tuic5-sb",
+            "listen": "::",
+            "listen_port": 22222,
+            "users": [
+                {
+                    "uuid": "2dd9f8ed-b601-4c50-8148-da0c62670b66",
+                    "password": "2dd9f8ed-b601-4c50-8148-da0c62670b66"
+                }
+            ],
+            "congestion_control": "bbr",
+            "tls": {
+                "enabled": true,
+                "alpn": [
+                    "h3"
+                ],
+                "certificate_path": "/etc/s-box/cert.pem",
+                "key_path": "/etc/s-box/private.key"
+            }
+        }
+    ],
+    "outbounds": [
+        {
+            "type": "direct",
+            "tag": "direct",
+            "domain_strategy": "prefer_ipv6"
+        },
+        {
+            "type": "direct",
+            "tag": "vps-outbound-v4",
+            "domain_strategy": "ipv4_only"
+        },
+        {
+            "type": "direct",
+            "tag": "vps-outbound-v6",
+            "domain_strategy": "ipv6_only"
+        },
+        {
+            "type": "socks",
+            "tag": "socks-out",
+            "server": "127.0.0.1",
+            "server_port": 40000,
+            "version": "5"
+        },
+        {
+            "type": "direct",
+            "tag": "socks-IPv4-out",
+            "detour": "socks-out",
+            "domain_strategy": "ipv4_only"
+        },
+        {
+            "type": "direct",
+            "tag": "socks-IPv6-out",
+            "detour": "socks-out",
+            "domain_strategy": "ipv6_only"
+        },
+        {
+            "type": "direct",
+            "tag": "warp-IPv4-out",
+            "detour": "wireguard-out",
+            "domain_strategy": "ipv4_only"
+        },
+        {
+            "type": "direct",
+            "tag": "warp-IPv6-out",
+            "detour": "wireguard-out",
+            "domain_strategy": "ipv6_only"
+        },
+        {
+            "type": "socks",
+            "tag": "ipv6-random",
+            "server": "127.0.0.1",
+            "server_port": 19950,
+            "version": "5",
+            "username": "mute0857",
+            "password": "Zxc13579"
+        },
+        {
+            "type": "wireguard",
+            "tag": "wireguard-out",
+            "server": "162.159.193.10",
+            "server_port": 1701,
+            "local_address": [
+                "172.16.0.2/32",
+                "2606:4700:110:8a25:880b:1595:64d:602/128"
+            ],
+            "private_key": "SEzIFUhykhzKlsVBbWCdjIbjY6Ayefrj/ljBLGqSlk4=",
+            "peer_public_key": "bmXOC+F1FxEMF9dyiK2H5/1SUtzH0JuVo51h2wPfgyo=",
+            "reserved": [
+                178,
+                216,
+                50
+            ]
+        },
+        {
+            "type": "block",
+            "tag": "block"
+        }
+    ],
+    "route": {
+        "rules": [
+            {
+                "protocol": [
+                    "quic",
+                    "stun"
+                ],
+                "outbound": "block"
+            },
+            {
+                "outbound": "ipv6-random",
+                "inbound": "hy2-sb"
+            },
+            {
+                "outbound": "direct",
+                "network": "udp,tcp"
+            }
+        ]
+    }
+}

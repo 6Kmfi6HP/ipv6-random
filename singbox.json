@@ -54,8 +54,8 @@
       "tls": {
         "enabled": false,
         "server_name": "www.bing.com",
-        "certificate_path": "/usr/local/etc/sing-box/cert.pem",
-        "key_path": "/usr/local/etc/sing-box/private.key"
+        "certificate_path": "/etc/s-box/cert.pem",
+        "key_path": "/etc/s-box/private.key"
       }
     },
     {
@@ -64,7 +64,7 @@
       "sniff_override_destination": true,
       "tag": "hy2-sb",
       "listen": "::",
-      "listen_port": 55555,
+      "listen_port": 49739,
       "users": [
         {
           "password": "e912ca43-e365-4f5a-b0f5-b85cf2a7f8b8"
@@ -74,8 +74,8 @@
       "tls": {
         "enabled": true,
         "alpn": ["h3"],
-        "certificate_path": "/usr/local/etc/sing-box/cert.pem",
-        "key_path": "/usr/local/etc/sing-box/private.key"
+        "certificate_path": "/etc/s-box/cert.pem",
+        "key_path": "/etc/s-box/private.key"
       }
     },
     {
@@ -95,8 +95,8 @@
       "tls": {
         "enabled": true,
         "alpn": ["h3"],
-        "certificate_path": "/usr/local/etc/sing-box/cert.pem",
-        "key_path": "/usr/local/etc/sing-box/private.key"
+        "certificate_path": "/etc/s-box/cert.pem",
+        "key_path": "/etc/s-box/private.key"
       }
     }
   ],

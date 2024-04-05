@@ -64,7 +64,7 @@
       "sniff_override_destination": true,
       "tag": "hy2-sb",
       "listen": "::",
-      "listen_port": 49739,
+      "listen_port": 55555,
       "users": [
         {
           "password": "e912ca43-e365-4f5a-b0f5-b85cf2a7f8b8"

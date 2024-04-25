@@ -11,15 +11,15 @@ install_xray() {
     apt-get install unzip -y || yum install unzip -y
     wget https://github.com/XTLS/Xray-core/releases/download/v1.8.3/Xray-linux-64.zip
     unzip Xray-linux-64.zip
-    mv xray /usr/local/bin/xrayL
-    chmod +x /usr/local/bin/xrayL
-	cat <<EOF >/etc/systemd/system/xrayL.service
+    mv xray /usr/local/bin/xrayK
+    chmod +x /usr/local/bin/xrayK
+	cat <<EOF >/etc/systemd/system/xrayK.service
 [Unit]
-Description=XrayL Service
+Description=xrayK Service
 After=network.target
 
 [Service]
-ExecStart=/usr/local/bin/xrayL -c /etc/xrayL/config.toml
+ExecStart=/usr/local/bin/xrayK -c /etc/xrayK/config.toml
 Restart=on-failure
 User=nobody
 RestartSec=3
@@ -28,13 +28,13 @@ RestartSec=3
 WantedBy=multi-user.target
 EOF
     systemctl daemon-reload
-    systemctl enable xrayL.service
-    systemctl start xrayL.service
+    systemctl enable xrayK.service
+    systemctl start xrayK.service
     echo "Xray 安装完成."
 }
 config_xray() {
     config_type=$1
-    mkdir -p /etc/xrayL
+    mkdir -p /etc/xrayK
     if [ "$config_type" != "socks" ] && [ "$config_type" != "vmess" ]; then
         echo "类型错误！仅支持socks和vmess."
         exit 1
@@ -119,9 +119,9 @@ config_xray() {
     config_content+="protocol = \"freedom\"\n"
     config_content+="tag = \"tag_all\"\n"
     
-    echo -e "$config_content" >/etc/xrayL/config.toml
-    systemctl restart xrayL.service
-    systemctl --no-pager status xrayL.service
+    echo -e "$config_content" >/etc/xrayK/config.toml
+    systemctl restart xrayK.service
+    systemctl --no-pager status xrayK.service
     echo ""
     echo "生成 $config_type 配置完成"
     echo "起始端口:$START_PORT"
@@ -137,7 +137,7 @@ config_xray() {
     echo ""
 }
 main() {
-    [ -x "$(command -v xrayL)" ] || install_xray
+    [ -x "$(command -v xrayK)" ] || install_xray
     if [ $# -eq 1 ]; then
         config_type="$1"
     else

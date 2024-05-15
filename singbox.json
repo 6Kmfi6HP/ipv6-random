@@ -157,6 +157,15 @@
       "password": "Zxc13579"
     },
     {
+      "type": "socks",
+      "tag": "ipv6-random2",
+      "server": "127.0.0.1",
+      "server_port": 15990,
+      "version": "5",
+      "username": "mute0857",
+      "password": "Zxc13579"
+    },
+    {
       "type": "wireguard",
       "tag": "wireguard-out",
       "server": "162.159.193.10",
@@ -185,11 +194,11 @@
         "inbound": "hy2-sb"
       },
       {
-        "outbound": "ipv6-random",
+        "outbound": "ipv6-random2",
         "inbound": "vless-sb"
       },
       {
-        "outbound": "ipv6-random",
+        "outbound": "ipv6-random2",
         "inbound": "vmess-sb"
       },
       {

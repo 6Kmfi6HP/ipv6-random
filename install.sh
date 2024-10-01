@@ -1,7 +1,7 @@
 #!/bin/bash
 DEFAULT_START_PORT=20000                         #默认起始端口
-DEFAULT_SOCKS_USERNAME="mute0857"                   #默认socks账号
-DEFAULT_SOCKS_PASSWORD="Zxc13579"               #默认socks密码
+DEFAULT_SOCKS_USERNAME="mute0857"                #默认socks账号
+DEFAULT_SOCKS_PASSWORD="Zxc13579"                #默认socks密码
 DEFAULT_WS_PATH="/ws"                            #默认ws路径
 DEFAULT_UUID=$(cat /proc/sys/kernel/random/uuid) #默认随机UUID
 
@@ -14,7 +14,7 @@ install_xray() {
     unzip Xray-linux-64.zip
     mv xray /usr/local/bin/xrayK
     chmod +x /usr/local/bin/xrayK
-	cat <<EOF >/etc/systemd/system/xrayK.service
+    cat <<EOF >/etc/systemd/system/xrayK.service
 [Unit]
 Description=xrayK Service
 After=network.target
@@ -40,22 +40,22 @@ config_xray() {
         echo "类型错误！仅支持socks和vmess."
         exit 1
     fi
-    
+
     read -p "起始端口 (默认 $DEFAULT_START_PORT): " START_PORT
     START_PORT=${START_PORT:-$DEFAULT_START_PORT}
     if [ "$config_type" == "socks" ]; then
         read -p "SOCKS 账号 (默认 $DEFAULT_SOCKS_USERNAME): " SOCKS_USERNAME
         SOCKS_USERNAME=${SOCKS_USERNAME:-$DEFAULT_SOCKS_USERNAME}
-        
+
         read -p "SOCKS 密码 (默认 $DEFAULT_SOCKS_PASSWORD): " SOCKS_PASSWORD
         SOCKS_PASSWORD=${SOCKS_PASSWORD:-$DEFAULT_SOCKS_PASSWORD}
-        elif [ "$config_type" == "vmess" ]; then
+    elif [ "$config_type" == "vmess" ]; then
         read -p "UUID (默认随机): " UUID
         UUID=${UUID:-$DEFAULT_UUID}
         read -p "WebSocket 路径 (默认 $DEFAULT_WS_PATH): " WS_PATH
         WS_PATH=${WS_PATH:-$DEFAULT_WS_PATH}
     fi
-    
+
     for ((i = 0; i < ${#IP_ADDRESSES[@]}; i++)); do
         config_content+="[[inbounds]]\n"
         config_content+="port = $((START_PORT + i))\n"
@@ -69,7 +69,7 @@ config_xray() {
             config_content+="[[inbounds.settings.accounts]]\n"
             config_content+="user = \"$SOCKS_USERNAME\"\n"
             config_content+="pass = \"$SOCKS_PASSWORD\"\n"
-            elif [ "$config_type" == "vmess" ]; then
+        elif [ "$config_type" == "vmess" ]; then
             config_content+="[[inbounds.settings.clients]]\n"
             config_content+="id = \"$UUID\"\n"
             config_content+="[inbounds.streamSettings]\n"
@@ -102,6 +102,7 @@ config_xray() {
     config_content+="\n"
     config_content+="[[routing.rules]]\n"
     config_content+="type = \"field\"\n"
+    config_content+="ip = [\"::/0\"]\n"
     config_content+="balancerTag = \"balancer\"\n"
     config_content+="inboundTag = \"tag_all\"\n"
     config_content+="\n"
@@ -119,7 +120,32 @@ config_xray() {
     config_content+="[[outbounds]]\n"
     config_content+="protocol = \"freedom\"\n"
     config_content+="tag = \"tag_all\"\n"
-    
+
+    # Add DNS configuration
+    config_content+="[dns]\n"
+    config_content+="hosts = { \"dns.google\" = [\"8.8.8.8\", \"8.8.4.4\"] }\n"
+    config_content+="queryStrategy = \"UseIP\"\n"
+    config_content+="tag = \"dns_inbound\"\n\n"
+    config_content+="[[dns.servers]]\n"
+    config_content+="address = \"8.8.8.8\"\n"
+    config_content+="port = 53\n\n"
+    config_content+="[[dns.servers]]\n"
+    config_content+="address = \"1.1.1.1\"\n"
+    config_content+="port = 53\n\n"
+    config_content+="[[dns.servers]]\n"
+    config_content+="address = \"https://dns.google/dns-query\"\n\n"
+
+    # Add routing configuration
+    config_content+="[routing]\n"
+    config_content+="domainStrategy = \"IPOnDemand\"\n\n"
+
+    # Add routing rule for IPv4
+    config_content+="[[routing.rules]]\n"
+    config_content+="type = \"field\"\n"
+    config_content+="ip = [\"0.0.0.0/0\"]\n"
+    config_content+="inboundTag = [\"dns_inbound\"]\n"
+    config_content+="outboundTag = \"direct\"\n\n"
+
     echo -e "$config_content" >/etc/xrayK/config.toml
     systemctl restart xrayK.service
     systemctl --no-pager status xrayK.service
@@ -131,7 +157,7 @@ config_xray() {
     if [ "$config_type" == "socks" ]; then
         echo "socks账号:$SOCKS_USERNAME"
         echo "socks密码:$SOCKS_PASSWORD"
-        elif [ "$config_type" == "vmess" ]; then
+    elif [ "$config_type" == "vmess" ]; then
         echo "UUID:$UUID"
         echo "ws路径:$WS_PATH"
     fi
@@ -146,7 +172,7 @@ main() {
     fi
     if [ "$config_type" == "vmess" ]; then
         config_xray "vmess"
-        elif [ "$config_type" == "socks" ]; then
+    elif [ "$config_type" == "socks" ]; then
         config_xray "socks"
     else
         echo "未正确选择类型 使用默认sokcs配置."

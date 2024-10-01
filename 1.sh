@@ -6,7 +6,7 @@ mkdir -p /usr/local/etc/sing-box
 wget -P /usr/local/etc/sing-box https://raw.githubusercontent.com/3Kmfi6HP/ipv6-random/main/cert.pem
 wget -P /usr/local/etc/sing-box https://raw.githubusercontent.com/3Kmfi6HP/ipv6-random/main/private.key
 wget -O /usr/local/etc/sing-box/config.json https://raw.githubusercontent.com/3Kmfi6HP/ipv6-random/main/singbox.json
-wget -O /etc/s-box/sb.json https://raw.githubusercontent.com/3Kmfi6HP/ipv6-random/main/singbox.json
+wget -O /etc/s-box/sb.json https://raw.githubusercontent.com/6Kmfi6HP/ipv6-random/main/singbox.json
 
 sudo apt-get install netfilter-persistent
 

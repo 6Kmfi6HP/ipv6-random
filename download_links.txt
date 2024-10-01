@@ -1,0 +1,8 @@
+Download Links:
+windows amd64: https://raw.githubusercontent.com/6Kmfi6HP/ipv6-random/main/build/ipv6gen_windows_amd64.exe
+windows 386: https://raw.githubusercontent.com/6Kmfi6HP/ipv6-random/main/build/ipv6gen_windows_386.exe
+darwin amd64: https://raw.githubusercontent.com/6Kmfi6HP/ipv6-random/main/build/ipv6gen_darwin_amd64
+darwin arm64: https://raw.githubusercontent.com/6Kmfi6HP/ipv6-random/main/build/ipv6gen_darwin_arm64
+linux amd64: https://raw.githubusercontent.com/6Kmfi6HP/ipv6-random/main/build/ipv6gen_linux_amd64
+linux arm64: https://raw.githubusercontent.com/6Kmfi6HP/ipv6-random/main/build/ipv6gen_linux_arm64
+linux 386: https://raw.githubusercontent.com/6Kmfi6HP/ipv6-random/main/build/ipv6gen_linux_386

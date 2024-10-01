@@ -132,7 +132,7 @@ func convertBinaryToIPv6(binary string) string {
 	return strings.Join(shortenedSegments, ":")
 }
 
-func generateIPv6Commands(input string, ipv6Count int, interfaceName string) []string {
+func generateIPv6Commands(input string, ipv6Count int, _ string) []string {
 	s := strings.Split(input, "/")
 	ipv6WithPrefix := s[0]
 	prefixLength, _ := strconv.Atoi(s[1])
@@ -165,18 +165,43 @@ func generateShellCommands(ipv6Addresses []string, interfaceName string) string 
 	return shellCommands
 }
 
+func printHelp() {
+	fmt.Println("Usage: go run main.go <IPv6_prefix/length> <number_of_addresses> <interface_name>")
+	fmt.Println("\nExample: go run main.go 2001:db8::/64 5 eth0")
+	fmt.Println("\nThis program generates random IPv6 addresses within the specified prefix")
+	fmt.Println("and adds them to the specified network interface.")
+	fmt.Println("This your ipv6 address:")
+	cmd := exec.Command("ip", "-6", "addr")
+	output, err := cmd.Output()
+	if err != nil {
+		fmt.Println("Error fetching public IP address:", err)
+		os.Exit(1)
+	}
+	fmt.Println(string(output))
+}
+
 func main() {
+	if len(os.Args) != 4 {
+		printHelp()
+		os.Exit(1)
+	}
+
 	input := os.Args[1]
-	ipv6Count, _ := strconv.Atoi(os.Args[2])
+	ipv6Count, err := strconv.Atoi(os.Args[2])
+	if err != nil {
+		fmt.Println("Error: Invalid number of addresses")
+		printHelp()
+		os.Exit(1)
+	}
 	interfaceName := os.Args[3]
 
 	generatedIPv6Commands := generateIPv6Commands(input, ipv6Count, interfaceName)
 	shellCommands := generateShellCommands(generatedIPv6Commands, interfaceName)
 
 	fmt.Println(shellCommands)
-	cmd := exec.Command("sh", "-c", shellCommands)
-	err := cmd.Run()
-	if err != nil {
-		fmt.Println(err)
-	}
+	// cmd := exec.Command("sh", "-c", shellCommands)
+	// err = cmd.Run()
+	// if err != nil {
+	// 	fmt.Println(err)
+	// }
 }

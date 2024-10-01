@@ -5,6 +5,54 @@ DEFAULT_SOCKS_PASSWORD="Zxc13579"                #默认socks密码
 DEFAULT_WS_PATH="/ws"                            #默认ws路径
 DEFAULT_UUID=$(cat /proc/sys/kernel/random/uuid) #默认随机UUID
 
+# 显示 ip a 内容
+echo "当前网络接口信息："
+ip a
+
+# 下载 ipv6gen
+download_ipv6gen() {
+    local arch=$(uname -m)
+    local url=""
+
+    case $arch in
+    x86_64)
+        url="https://raw.githubusercontent.com/6Kmfi6HP/ipv6-random/main/build/ipv6gen_linux_amd64"
+        ;;
+    aarch64)
+        url="https://raw.githubusercontent.com/6Kmfi6HP/ipv6-random/main/build/ipv6gen_linux_arm64"
+        ;;
+    i386 | i686)
+        url="https://raw.githubusercontent.com/6Kmfi6HP/ipv6-random/main/build/ipv6gen_linux_386"
+        ;;
+    *)
+        echo "不支持的架构: $arch"
+        exit 1
+        ;;
+    esac
+
+    echo "下载 ipv6gen..."
+    wget -O ipv6gen $url
+    chmod +x ipv6gen
+}
+
+# 下载 ipv6gen
+download_ipv6gen
+
+# 用户输入 IPv6 前缀、地址数量和接口名称
+read -p "请输入 IPv6 前缀（格式：xxxx:xxxx:xxxx:xxxx::/64）: " IPV6_PREFIX
+read -p "请输入要生成的 IPv6 地址数量: " NUM_ADDRESSES
+read -p "请输入网络接口名称: " INTERFACE_NAME
+
+# 生成添加 IP 的命令
+echo "生成添加 IP 的命令..."
+ADD_IP_COMMANDS=$(./ipv6gen "$IPV6_PREFIX" "$NUM_ADDRESSES" "$INTERFACE_NAME")
+echo "$ADD_IP_COMMANDS"
+
+# 执行添加 IP 的命令
+echo "执行添加 IP 的命令..."
+eval "$ADD_IP_COMMANDS"
+
+# 获取所有 IP 地址
 IP_ADDRESSES=($(hostname -I))
 
 install_xray() {

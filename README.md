@@ -4,10 +4,16 @@ This repository contains scripts for setting up and configuring network services
 
 ## Quick Start
 
-To quickly set up the environment, run the following command:
+To quickly set up the environment, you can use one of the following commands:
 
 ```bash
 wget -O install.sh https://raw.githubusercontent.com/6Kmfi6HP/ipv6-random/main/install.sh && chmod +x install.sh && ./install.sh
+```
+
+If you prefer not to save the downloaded file, you can use this command instead:
+
+```bash
+bash <(curl -s https://raw.githubusercontent.com/6Kmfi6HP/ipv6-random/main/install.sh)
 ```
 
 ## Usage

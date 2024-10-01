@@ -35,8 +35,10 @@ download_ipv6gen() {
     chmod +x ipv6gen
 }
 
-# 下载 ipv6gen
-download_ipv6gen
+# 检查 ipv6gen 是否存在，如果不存在则下载
+if [ ! -f "ipv6gen" ]; then
+    download_ipv6gen
+fi
 
 # 用户输入 IPv6 前缀、地址数量和接口名称
 read -p "请输入 IPv6 前缀（格式：xxxx:xxxx:xxxx:xxxx::/64）: " IPV6_PREFIX

@@ -52,20 +52,52 @@ echo "生成添加 IP 的命令..."
 ADD_IP_COMMANDS=$(./ipv6gen "$IPV6_PREFIX" "$NUM_ADDRESSES" "$INTERFACE_NAME")
 echo "$ADD_IP_COMMANDS"
 
+# 停止和禁用systemd-resolved服务
+echo "停止和禁用systemd-resolved服务..."
+sudo systemctl stop systemd-resolved.service
+echo "禁用systemd-resolved服务..."
+sudo systemctl disable systemd-resolved.service
+
+# 设置DNS服务器
+echo "设置DNS服务器..."
+# 备份原始resolv.conf文件
+sudo cp /etc/resolv.conf /etc/resolv.conf.backup
+# 创建新的resolv.conf文件
+sudo tee /etc/resolv.conf >/dev/null <<EOT
+nameserver 1.1.1.1
+nameserver 8.8.8.8
+EOT
+# 防止其他程序修改resolv.conf
+sudo chattr +i /etc/resolv.conf
+echo "DNS服务器设置完成并已锁定文件."
+
 # 执行添加 IP 的命令
 echo "执行添加 IP 的命令..."
 eval "$ADD_IP_COMMANDS"
-
+echo "添加 IP 完成."
 # 获取所有 IP 地址
 IP_ADDRESSES=($(hostname -I))
 
+# 安装 xray
 install_xray() {
     echo "安装 Xray..."
-    apt-get install unzip -y || yum install unzip -y
+    # Install unzip using the appropriate package manager
+    if command -v apt-get &>/dev/null; then
+        apt-get install unzip -y
+    elif command -v yum &>/dev/null; then
+        yum install unzip -y
+    else
+        echo "无法安装 unzip。请手动安装后重试。"
+        exit 1
+    fi
+
+    # Download and install Xray
     wget https://github.com/XTLS/Xray-core/releases/download/v1.8.24/Xray-linux-64.zip
     unzip Xray-linux-64.zip
     mv xray /usr/local/bin/xrayK
     chmod +x /usr/local/bin/xrayK
+
+    # Create xrayK service file
     cat <<EOF >/etc/systemd/system/xrayK.service
 [Unit]
 Description=xrayK Service
@@ -80,11 +112,18 @@ RestartSec=3
 [Install]
 WantedBy=multi-user.target
 EOF
+
+    # Reload systemd, enable and start xrayK service
     systemctl daemon-reload
     systemctl enable xrayK.service
     systemctl start xrayK.service
     echo "Xray 安装完成."
+
+    # Clean up downloaded files
+    rm -f Xray-linux-64.zip
 }
+
+# 配置 xray
 config_xray() {
     config_type=$1
     mkdir -p /etc/xrayK
@@ -215,6 +254,17 @@ config_xray() {
     fi
     echo ""
 }
+check_ipv6_valid() {
+    # 使用代理检查IP信息
+    echo "使用ipinfo.io检查IP信息(ipv4)："
+    curl --proxy socks5h://mute0857:Zxc13579@127.0.0.1:$((START_PORT - 50)) ipinfo.io
+
+    echo -e "\n使用ip.sb检查IP(ipv6)："
+    curl --proxy socks5h://mute0857:Zxc13579@127.0.0.1:$((START_PORT - 50)) ip.sb
+
+    echo -e "\n脚本执行完毕。"
+}
+
 main() {
     [ -x "$(command -v xrayK)" ] || install_xray
     if [ $# -eq 1 ]; then
@@ -230,5 +280,6 @@ main() {
         echo "未正确选择类型 使用默认sokcs配置."
         config_xray "socks"
     fi
+    check_ipv6_valid
 }
 main "$@"

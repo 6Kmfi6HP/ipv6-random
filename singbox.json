@@ -166,6 +166,15 @@
       "password": "Zxc13579"
     },
     {
+      "type": "socks",
+      "tag": "ipv4-local",
+      "server": "127.0.0.1",
+      "server_port": 29950,
+      "version": "5",
+      "username": "mute0857",
+      "password": "Zxc13579"
+    },
+    {
       "type": "wireguard",
       "tag": "wireguard-out",
       "server": "162.159.193.10",
@@ -191,19 +200,43 @@
       },
       {
         "outbound": "ipv6-random",
-        "inbound": "hy2-sb"
+        "inbound": "hy2-sb",
+        "ip_version": 6
       },
       {
-        "outbound": "ipv6-random2",
-        "inbound": "vless-sb"
-      },
-      {
-        "outbound": "ipv6-random2",
-        "inbound": "vmess-sb"
+        "outbound": "ipv4-local",
+        "inbound": "hy2-sb",
+        "ip_version": 4
       },
       {
         "outbound": "ipv6-random",
-        "inbound": "tuic5-sb"
+        "inbound": "vless-sb",
+        "ip_version": 6
+      },
+      {
+        "outbound": "ipv4-local",
+        "inbound": "vless-sb",
+        "ip_version": 4
+      },
+      {
+        "outbound": "ipv6-random",
+        "inbound": "vmess-sb",
+        "ip_version": 6
+      },
+      {
+        "outbound": "ipv4-local",
+        "inbound": "vmess-sb",
+        "ip_version": 4
+      },
+      {
+        "outbound": "ipv6-random",
+        "inbound": "tuic5-sb",
+        "ip_version": 6
+      },
+      {
+        "outbound": "ipv4-local",
+        "inbound": "tuic5-sb",
+        "ip_version": 4
       },
       {
         "outbound": "direct",

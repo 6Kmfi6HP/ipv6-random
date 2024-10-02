@@ -67,9 +67,7 @@ sudo tee /etc/resolv.conf >/dev/null <<EOT
 nameserver 1.1.1.1
 nameserver 8.8.8.8
 EOT
-# 防止其他程序修改resolv.conf
-sudo chattr +i /etc/resolv.conf
-echo "DNS服务器设置完成并已锁定文件."
+
 
 # 执行添加 IP 的命令
 echo "执行添加 IP 的命令..."

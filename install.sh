@@ -68,7 +68,6 @@ nameserver 1.1.1.1
 nameserver 8.8.8.8
 EOT
 
-
 # 执行添加 IP 的命令
 echo "执行添加 IP 的命令..."
 eval "$ADD_IP_COMMANDS"
@@ -144,6 +143,9 @@ config_xray() {
         read -p "WebSocket 路径 (默认 $DEFAULT_WS_PATH): " WS_PATH
         WS_PATH=${WS_PATH:-$DEFAULT_WS_PATH}
     fi
+    echo "生成配置文件..."
+    # 生成配置文件 是否添加domainStrategy = \"IPOnDemand\"\n\n"
+    read -p "是否使用(IPv4)？(y/n): " IS_ADD_DOMAIN_STRATEGY
 
     for ((i = 0; i < ${#IP_ADDRESSES[@]}; i++)); do
         config_content+="[[inbounds]]\n"
@@ -224,16 +226,18 @@ config_xray() {
     config_content+="[[dns.servers]]\n"
     config_content+="address = \"https://dns.google/dns-query\"\n\n"
 
-    # Add routing configuration
-    config_content+="[routing]\n"
-    config_content+="domainStrategy = \"IPOnDemand\"\n\n"
+    if [ "$IS_ADD_DOMAIN_STRATEGY" == "y" ]; then
+        # Add routing configuration
+        config_content+="[routing]\n"
+        config_content+="domainStrategy = \"IPOnDemand\"\n\n"
 
-    # Add routing rule for IPv4
-    config_content+="[[routing.rules]]\n"
-    config_content+="type = \"field\"\n"
-    config_content+="ip = [\"0.0.0.0/0\"]\n"
-    config_content+="inboundTag = [\"dns_inbound\"]\n"
-    config_content+="outboundTag = \"direct\"\n\n"
+        # Add routing rule for IPv4
+        config_content+="[[routing.rules]]\n"
+        config_content+="type = \"field\"\n"
+        config_content+="ip = [\"0.0.0.0/0\"]\n"
+        config_content+="inboundTag = [\"dns_inbound\"]\n"
+        config_content+="outboundTag = \"direct\"\n\n"
+    fi
 
     echo -e "$config_content" >/etc/xrayK/config.toml
     systemctl restart xrayK.service
@@ -278,6 +282,7 @@ main() {
         echo "未正确选择类型 使用默认sokcs配置."
         config_xray "socks"
     fi
+    sleep 10
     check_ipv6_valid
 }
 main "$@"

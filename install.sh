@@ -35,45 +35,70 @@ download_ipv6gen() {
     chmod +x ipv6gen
 }
 
-# 检查 ipv6gen 是否存在，如果不存在则下载
-if [ ! -f "ipv6gen" ]; then
-    download_ipv6gen
+# 检查并安装 NetworkManager
+echo "检查 NetworkManager..."
+if ! command -v nmcli &>/dev/null; then
+    echo "NetworkManager 未安装，正在安装..."
+    sudo apt-get update
+    sudo apt-get install -y network-manager
 else
-    echo "ipv6gen 已存在，跳过下载"
+    echo "NetworkManager 已安装"
 fi
 
-# 用户输入 IPv6 前缀、地址数量和接口名称
-read -p "请输入 IPv6 前缀（格式：xxxx:xxxx:xxxx:xxxx::/64）: " IPV6_PREFIX
-read -p "请输入要生成的 IPv6 地址数量: " NUM_ADDRESSES
-read -p "请输入网络接口名称: " INTERFACE_NAME
+configure_dns() {
+    echo "配置DNS..."
+    # 停止和禁用systemd-resolved服务
+    sudo systemctl disable systemd-resolved
+    sudo systemctl stop systemd-resolved
 
-# 生成添加 IP 的命令
-echo "生成添加 IP 的命令..."
-ADD_IP_COMMANDS=$(./ipv6gen "$IPV6_PREFIX" "$NUM_ADDRESSES" "$INTERFACE_NAME")
-echo "$ADD_IP_COMMANDS"
+    # 配置NetworkManager
+    sudo tee -a /etc/NetworkManager/NetworkManager.conf >/dev/null <<EOT
 
-# 停止和禁用systemd-resolved服务
-echo "停止和禁用systemd-resolved服务..."
-sudo systemctl stop systemd-resolved.service
-echo "禁用systemd-resolved服务..."
-sudo systemctl disable systemd-resolved.service
-
-# 设置DNS服务器
-echo "设置DNS服务器..."
-# 备份原始resolv.conf文件
-sudo cp /etc/resolv.conf /etc/resolv.conf.backup
-# 创建新的resolv.conf文件
-sudo tee /etc/resolv.conf >/dev/null <<EOT
-nameserver 1.1.1.1
-nameserver 8.8.8.8
+[main]
+dns=default
 EOT
 
-# 执行添加 IP 的命令
-echo "执行添加 IP 的命令..."
-eval "$ADD_IP_COMMANDS"
-echo "添加 IP 完成."
-# 获取所有 IP 地址
-IP_ADDRESSES=($(hostname -I))
+    # 重置resolv.conf
+    sudo unlink /etc/resolv.conf
+    sudo touch /etc/resolv.conf
+    # 添加dns 服务器
+    echo "nameserver 8.8.8.8" | sudo tee -a /etc/resolv.conf
+    echo "nameserver 8.8.4.4" | sudo tee -a /etc/resolv.conf
+
+    # 重启NetworkManager
+    sudo systemctl restart NetworkManager
+
+    # 显示NetworkManager状态和resolv.conf内容
+    echo "NetworkManager状态:"
+    sudo systemctl --no-pager status NetworkManager
+    echo "resolv.conf内容:"
+    cat /etc/resolv.conf
+}
+
+setup_ipv6() {
+    echo "当前网络接口信息："
+    ip a
+
+    # 下载 ipv6gen
+    if [ ! -f "ipv6gen" ]; then
+        download_ipv6gen
+    else
+        echo "ipv6gen 已存在，跳过下载"
+    fi
+
+    # 用户输入 IPv6 地址数量
+    read -p "请输入要生成的 IPv6 地址数量: " NUM_ADDRESSES
+
+    # 生成并执行添加 IP 的命令
+    echo "生成并执行添加 IP 的命令..."
+    ADD_IP_COMMANDS=$(./ipv6gen "$NUM_ADDRESSES")
+    echo "$ADD_IP_COMMANDS"
+    eval "$ADD_IP_COMMANDS"
+    echo "添加 IP 完成."
+
+    # 获取所有 IP 地址
+    IP_ADDRESSES=($(hostname -I))
+}
 
 # 安装 xray
 install_xray() {
@@ -268,6 +293,8 @@ check_ipv6_valid() {
 }
 
 main() {
+    configure_dns
+    setup_ipv6
     [ -x "$(command -v xrayK)" ] || install_xray
     if [ $# -eq 1 ]; then
         config_type="$1"

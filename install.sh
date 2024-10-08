@@ -5,10 +5,6 @@ DEFAULT_SOCKS_PASSWORD="Zxc13579"                #默认socks密码
 DEFAULT_WS_PATH="/ws"                            #默认ws路径
 DEFAULT_UUID=$(cat /proc/sys/kernel/random/uuid) #默认随机UUID
 
-# 显示 ip a 内容
-echo "当前网络接口信息："
-ip a
-
 # 下载 ipv6gen
 download_ipv6gen() {
     local arch=$(uname -m)
@@ -76,6 +72,13 @@ EOT
 }
 
 setup_ipv6() {
+    # Add this section at the beginning of the setup_ipv6 function
+    echo "Updating /etc/hosts file..."
+    HOSTNAME=$(hostname)
+    if ! grep -q "$HOSTNAME" /etc/hosts; then
+        echo "127.0.0.1 $HOSTNAME" | sudo tee -a /etc/hosts
+    fi
+
     echo "当前网络接口信息："
     ip a
 

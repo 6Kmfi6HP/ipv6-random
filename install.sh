@@ -221,7 +221,9 @@ config_xray() {
     config_content+="\n"
     config_content+="[[routing.rules]]\n"
     config_content+="type = \"field\"\n"
-    config_content+="ip = [\"::/0\"]\n"
+    if [ "$IS_ADD_DOMAIN_STRATEGY" == "y" ]; then
+        config_content+="ip = [\"::/0\"]\n"
+    fi
     config_content+="balancerTag = \"balancer\"\n"
     config_content+="inboundTag = \"tag_all\"\n"
     config_content+="\n"

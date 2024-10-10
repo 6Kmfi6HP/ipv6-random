@@ -240,21 +240,22 @@ config_xray() {
     config_content+="protocol = \"freedom\"\n"
     config_content+="tag = \"tag_all\"\n"
 
-    # Add DNS configuration
-    config_content+="[dns]\n"
-    config_content+="hosts = { \"dns.google\" = [\"8.8.8.8\", \"8.8.4.4\"] }\n"
-    config_content+="queryStrategy = \"UseIP\"\n"
-    config_content+="tag = \"dns_inbound\"\n\n"
-    config_content+="[[dns.servers]]\n"
-    config_content+="address = \"8.8.8.8\"\n"
-    config_content+="port = 53\n\n"
-    config_content+="[[dns.servers]]\n"
-    config_content+="address = \"1.1.1.1\"\n"
-    config_content+="port = 53\n\n"
-    config_content+="[[dns.servers]]\n"
-    config_content+="address = \"https://dns.google/dns-query\"\n\n"
-
     if [ "$IS_ADD_DOMAIN_STRATEGY" == "y" ]; then
+
+        # Add DNS configuration
+        config_content+="[dns]\n"
+        config_content+="hosts = { \"dns.google\" = [\"8.8.8.8\", \"8.8.4.4\"] }\n"
+        config_content+="queryStrategy = \"UseIP\"\n"
+        config_content+="tag = \"dns_inbound\"\n\n"
+        config_content+="[[dns.servers]]\n"
+        config_content+="address = \"8.8.8.8\"\n"
+        config_content+="port = 53\n\n"
+        config_content+="[[dns.servers]]\n"
+        config_content+="address = \"1.1.1.1\"\n"
+        config_content+="port = 53\n\n"
+        config_content+="[[dns.servers]]\n"
+        config_content+="address = \"https://dns.google/dns-query\"\n\n"
+
         # Add routing configuration
         config_content+="[routing]\n"
         config_content+="domainStrategy = \"IPOnDemand\"\n\n"

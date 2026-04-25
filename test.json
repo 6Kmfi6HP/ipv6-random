@@ -1,0 +1,60 @@
+{
+  "inbounds": [
+    {
+      "port": 19950,
+      "protocol": "socks",
+      "tag": "tag_all",
+      "settings": {
+        "auth": "password",
+        "udp": true,
+        "accounts": [
+          {
+            "user": "mute0857",
+            "pass": "Zxc13579"
+          }
+        ]
+      }
+    }
+  ],
+  "outbounds": [
+    {
+      "protocol": "freedom",
+      "sendThrough": "216.146.25.227",
+      "tag": "tag_1"
+    },
+    {
+      "protocol": "freedom",
+      "sendThrough": "2602:fafd:f0e:2e:5f0a:93fc:fa59:192c",
+      "tag": "tag_2"
+    },
+    {
+      "protocol": "freedom",
+      "sendThrough": "2602:fafd:f0e:2e:926a:baba:1e7:7e13",
+      "tag": "tag_3"
+    },
+    {
+      "protocol": "freedom",
+      "tag": "tag_all"
+    }
+  ],
+  "balancers": {
+    "strategy": {
+      "type": "roundRobin"
+    }
+  },
+  "routing": {
+    "balancers": [
+      {
+        "selector": ["tag_1", "tag_2", "tag_3"],
+        "tag": "balancer"
+      }
+    ],
+    "rules": [
+      {
+        "balancerTag": "balancer",
+        "inboundTag": "tag_all",
+        "type": "field"
+      }
+    ]
+  }
+}

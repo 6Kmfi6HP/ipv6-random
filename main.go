@@ -12,11 +12,100 @@ import (
 	"strconv"
 	"strings"
 	"time"
+
+	"encoding/json"
 )
+
+// XrayConfig 表示完整的 Xray 配置
+type XrayConfig struct {
+	Inbounds  []Inbound     `json:"inbounds"`
+	Outbounds []Outbound    `json:"outbounds"`
+	Routing   RoutingConfig `json:"routing"`
+	Balancers BalancerRoot  `json:"balancers"`
+	DNS       *DNSConfig    `json:"dns,omitempty"`
+}
+
+// Inbound 表示入站配置
+type Inbound struct {
+	Port     int             `json:"port"`
+	Protocol string          `json:"protocol"`
+	Tag      string          `json:"tag"`
+	Settings InboundSettings `json:"settings"`
+}
+
+// InboundSettings 表示入站设置
+type InboundSettings struct {
+	Auth     string    `json:"auth,omitempty"`
+	UDP      bool      `json:"udp,omitempty"`
+	IP       string    `json:"ip,omitempty"`
+	Accounts []Account `json:"accounts,omitempty"`
+}
+
+// Account 表示账户信息
+type Account struct {
+	User string `json:"user"`
+	Pass string `json:"pass"`
+}
+
+// Outbound 表示出站配置
+type Outbound struct {
+	SendThrough string `json:"sendThrough,omitempty"`
+	Protocol    string `json:"protocol"`
+	Tag         string `json:"tag"`
+}
+
+// RoutingConfig 表示路由配置
+type RoutingConfig struct {
+	DomainStrategy string         `json:"domainStrategy,omitempty"`
+	Rules          []RoutingRule  `json:"rules"`
+	Balancers      []BalancerItem `json:"balancers"`
+}
+
+// RoutingRule 表示路由规则
+type RoutingRule struct {
+	Type        string   `json:"type"`
+	InboundTag  string   `json:"inboundTag,omitempty"`
+	OutboundTag string   `json:"outboundTag,omitempty"`
+	BalancerTag string   `json:"balancerTag,omitempty"`
+	IP          []string `json:"ip,omitempty"`
+}
+
+// BalancerItem 表示路由中的负载均衡器配置
+type BalancerItem struct {
+	Tag      string   `json:"tag"`
+	Selector []string `json:"selector"`
+}
+
+// BalancerRoot 表示负载均衡器根配置
+type BalancerRoot struct {
+	Strategy BalancerStrategy `json:"strategy"`
+}
+
+// BalancerStrategy 表示负载均衡策略
+type BalancerStrategy struct {
+	Type string `json:"type"`
+}
+
+// DNSConfig 表示 DNS 配置
+type DNSConfig struct {
+	Hosts         map[string][]string `json:"hosts"`
+	QueryStrategy string              `json:"queryStrategy"`
+	Tag           string              `json:"tag"`
+	Servers       []DNSServer         `json:"servers"`
+}
+
+// DNSServer 表示 DNS 服务器配置
+type DNSServer struct {
+	Address string `json:"address"`
+	Port    int    `json:"port,omitempty"`
+}
 
 func main() {
 	// 添加新的命令行标志
 	verbose := flag.Bool("v", false, "Enable verbose logging")
+	startPort := flag.Int("port", 20000, "Starting port number")
+	socksUser := flag.String("user", "mute0857", "SOCKS username")
+	socksPass := flag.String("pass", "Zxc13579", "SOCKS password")
 	flag.Parse()
 
 	// 设置日志输出
@@ -65,9 +154,18 @@ func main() {
 	}
 
 	// 生成并打印 IPv6/128 地址
+	var allAddresses []string
 	for i := 0; i < count; i++ {
 		newIP := generateIPv6(ip)
-		fmt.Printf("sudo ip addr add %s/128 dev %s;\n", newIP.String(), interfaceName)
+		ipCmd := fmt.Sprintf("sudo ip addr add %s/128 dev %s", newIP.String(), interfaceName)
+		fmt.Println(ipCmd + ";")
+		allAddresses = append(allAddresses, newIP.String())
+	}
+
+	// 生成配置文件
+	if err := generateXrayConfig(allAddresses, interfaceName, *startPort, *socksUser, *socksPass); err != nil {
+		fmt.Printf("Error generating config: %v\n", err)
+		os.Exit(1)
 	}
 }
 
@@ -194,4 +292,78 @@ func getDefaultInterface() (*net.Interface, error) {
 	}
 
 	return nil, fmt.Errorf("no default interface found")
+}
+
+func generateXrayConfig(ipAddresses []string, _ string, startPort int, socksUser, socksPass string) error {
+	config := XrayConfig{
+		Inbounds: []Inbound{
+			{
+				Port:     startPort,
+				Protocol: "socks",
+				Tag:      "tag_all",
+				Settings: InboundSettings{
+					Auth: "password",
+					UDP:  true,
+					Accounts: []Account{{
+						User: socksUser,
+						Pass: socksPass,
+					}},
+				},
+			},
+		},
+		Outbounds: make([]Outbound, 0, len(ipAddresses)+1),
+		Routing: RoutingConfig{
+			Rules: []RoutingRule{{
+				Type:        "field",
+				InboundTag:  "tag_all",
+				BalancerTag: "balancer",
+			}},
+			Balancers: []BalancerItem{{
+				Tag:      "balancer",
+				Selector: make([]string, 0, len(ipAddresses)),
+			}},
+		},
+		Balancers: BalancerRoot{
+			Strategy: BalancerStrategy{
+				Type: "roundRobin",
+			},
+		},
+	}
+
+	// 为每个IP添加出站配置
+	selectors := make([]string, 0, len(ipAddresses))
+	for i, ip := range ipAddresses {
+		tag := fmt.Sprintf("tag_%d", i+1)
+		selectors = append(selectors, tag)
+
+		config.Outbounds = append(config.Outbounds, Outbound{
+			SendThrough: ip,
+			Protocol:    "freedom",
+			Tag:         tag,
+		})
+	}
+
+	// 设置负载均衡选择器
+	config.Routing.Balancers[0].Selector = selectors
+
+	// 添加默认出站
+	config.Outbounds = append(config.Outbounds, Outbound{
+		Protocol: "freedom",
+		Tag:      "tag_all",
+	})
+
+	// 写入配置文件
+	f, err := os.Create("config.json")
+	if err != nil {
+		return fmt.Errorf("failed to create config file: %v", err)
+	}
+	defer f.Close()
+
+	encoder := json.NewEncoder(f)
+	encoder.SetIndent("", "    ")
+	if err := encoder.Encode(config); err != nil {
+		return fmt.Errorf("failed to encode config: %v", err)
+	}
+
+	return nil
 }

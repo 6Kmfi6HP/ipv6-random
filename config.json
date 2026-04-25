@@ -1,0 +1,76 @@
+{
+    "inbounds": [
+        {
+            "port": 20000,
+            "protocol": "socks",
+            "tag": "tag_all",
+            "settings": {
+                "auth": "password",
+                "udp": true,
+                "accounts": [
+                    {
+                        "user": "mute0857",
+                        "pass": "Zxc13579"
+                    }
+                ]
+            }
+        }
+    ],
+    "outbounds": [
+        {
+            "sendThrough": "fc9c:cbd5:1a71:e974:e6ba:4c6e:3ee6:10d1",
+            "protocol": "freedom",
+            "tag": "tag_1"
+        },
+        {
+            "sendThrough": "fc9c:cbd5:1a71:e974:d964:aa51:1683:f8e6",
+            "protocol": "freedom",
+            "tag": "tag_2"
+        },
+        {
+            "sendThrough": "fc9c:cbd5:1a71:e974:5dd9:3c57:6371:71b2",
+            "protocol": "freedom",
+            "tag": "tag_3"
+        },
+        {
+            "sendThrough": "fc9c:cbd5:1a71:e974:7873:33e8:472b:204f",
+            "protocol": "freedom",
+            "tag": "tag_4"
+        },
+        {
+            "sendThrough": "fc9c:cbd5:1a71:e974:a8c3:23b1:18c6:7b69",
+            "protocol": "freedom",
+            "tag": "tag_5"
+        },
+        {
+            "protocol": "freedom",
+            "tag": "tag_all"
+        }
+    ],
+    "routing": {
+        "rules": [
+            {
+                "type": "field",
+                "inboundTag": "tag_all",
+                "balancerTag": "balancer"
+            }
+        ],
+        "balancers": [
+            {
+                "tag": "balancer",
+                "selector": [
+                    "tag_1",
+                    "tag_2",
+                    "tag_3",
+                    "tag_4",
+                    "tag_5"
+                ]
+            }
+        ]
+    },
+    "balancers": {
+        "strategy": {
+            "type": "roundRobin"
+        }
+    }
+}
